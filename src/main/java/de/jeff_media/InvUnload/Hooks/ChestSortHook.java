@@ -8,25 +8,49 @@ import org.bukkit.inventory.Inventory;
 import de.jeff_media.InvUnload.BlockUtils;
 import de.jeff_media.InvUnload.Main;
 
+import java.lang.reflect.Method;
+
 public class ChestSortHook {
 	
 	final Main main;
+	private Method hasSortingEnabledMethod;
+	private Method sortInventoryMethod;
+	private boolean available;
 	
 	public ChestSortHook(Main main) {
 		this.main=main;
+		try {
+			Class<?> chestSortApiClass = Class.forName("de.jeff_media.chestsort.api.ChestSortAPI");
+			hasSortingEnabledMethod = chestSortApiClass.getMethod("hasSortingEnabled", Player.class);
+			sortInventoryMethod = chestSortApiClass.getMethod("sortInventory", Inventory.class);
+			available = true;
+		} catch (ReflectiveOperationException ignored) {
+			available = false;
+		}
 	}
 	
 	public boolean shouldSort(Player p) {
-		if(!main.useChestSort) return false;
+		if(!main.useChestSort || !available) return false;
 		if(main.getConfig().getBoolean("force-chestsort")) return true;
-		return de.jeff_media.chestsort.api.ChestSortAPI.hasSortingEnabled(p);
+		try {
+			return (boolean) hasSortingEnabledMethod.invoke(null, p);
+		} catch (ReflectiveOperationException e) {
+			main.getLogger().warning("Could not query ChestSort. Disabling ChestSort integration.");
+			main.useChestSort = false;
+			return false;
+		}
 	}
 	
 	public void sort(Block block) {
-		if(!main.useChestSort) return;
+		if(!main.useChestSort || !available) return;
 		if(!BlockUtils.isChestLikeBlock(block.getType())) return;
 		Inventory inv = ((Container) block.getState()).getInventory();
-		de.jeff_media.chestsort.api.ChestSortAPI.sortInventory(inv);
+		try {
+			sortInventoryMethod.invoke(null, inv);
+		} catch (ReflectiveOperationException e) {
+			main.getLogger().warning("Could not sort inventory via ChestSort. Disabling ChestSort integration.");
+			main.useChestSort = false;
+		}
 	}
 
 }

@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.jeff_media.InvUnload.utils.CoolDown;
-import org.apache.commons.lang.StringUtils;
-import org.bukkit.Bukkit;
+import de.jeff_media.InvUnload.utils.NumberUtils;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -56,6 +55,23 @@ public class CommandUnload implements CommandExecutor , TabCompleter {
 			return true;
 		}
 
+		if(args.length>0 && args[0].equalsIgnoreCase("selftest") && command.getName().equalsIgnoreCase("unload")) {
+			if(!(sender instanceof Player)) {
+				sender.sendMessage(ChatColor.RED + "The self-test must be run by a player.");
+				return true;
+			}
+			if(!sender.hasPermission("invunload.selftest")) {
+				sender.sendMessage(main.getCommand("unload").getPermissionMessage());
+				return true;
+			}
+			if(!main.getConfig().getBoolean("debug", false)) {
+				sender.sendMessage(ChatColor.RED + "Enable debug: true in config.yml before running /unload selftest.");
+				return true;
+			}
+			new SelfTestRunner(main).run((Player) sender);
+			return true;
+		}
+
 		if(!(sender instanceof Player)) {
 			return true;
 		}
@@ -89,7 +105,7 @@ public class CommandUnload implements CommandExecutor , TabCompleter {
 
 		
 		if(args.length>0) {
-			if(!StringUtils.isNumeric(args[0])) {
+			if(!NumberUtils.isPositiveInteger(args[0])) {
 				p.sendMessage(main.messages.MSG_NOT_A_NUMBER);
 				return true;
 			}

@@ -1,3 +1,3 @@
-This version is compatible with all Spigot versions >= 1.12.1
+This branch is built against Paper 1.21.11 and Java 21.
 
-Prior to 1.12.1, Container was not implemented
+Optional integrations are detected at runtime so the plugin can still start cleanly when those companion plugins are not installed.

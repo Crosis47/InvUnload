@@ -1,7 +1,6 @@
 package de.jeff_media.InvUnload;
 
 import de.jeff_media.InvUnload.Hooks.ItemsAdderWrapper;
-import com.jeff_media.jefflib.EnumUtils;
 import org.bukkit.*;
 import org.bukkit.block.*;
 import org.bukkit.block.data.BlockData;
@@ -16,10 +15,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class BlockUtils {
 
@@ -27,7 +22,15 @@ public class BlockUtils {
 	private static final List<String> CONTAINER_NAMES = Arrays.asList("(.*)BARREL$", "(.*)CHEST$", "^SHULKER_BOX$", "^(.*)_SHULKER_BOX$");
 
 	static {
-		CONTAINER_TYPES = EnumUtils.getEnumsFromRegexList(Material.class, CONTAINER_NAMES);
+		CONTAINER_TYPES = EnumSet.noneOf(Material.class);
+		for(Material material : Material.values()) {
+			for(String regex : CONTAINER_NAMES) {
+				if(material.name().matches(regex)) {
+					CONTAINER_TYPES.add(material);
+					break;
+				}
+			}
+		}
 	}
 	
 	final Main main;
@@ -38,8 +41,7 @@ public class BlockUtils {
 	
 	static List<Block> findBlocksInRadius(Location loc, int radius) {
 		BoundingBox box = BoundingBox.of(loc,radius,radius,radius);
-		//List<BlockVector> blocks = de.jeff_media.jefflib.BlockUtils.getBlocks(loc.getWorld(), box, true, blockData -> isChestLikeBlock(blockData.getMaterial()));
-		List<Chunk> chunks = com.jeff_media.jefflib.BlockUtils.getChunks(loc.getWorld(), box,true);
+		List<Chunk> chunks = getLoadedChunks(loc.getWorld(), box);
 		List<Block> blocks = new ArrayList<>();
 		for(Chunk chunk : chunks) {
 			for(BlockState state : chunk.getTileEntities()) {
@@ -60,6 +62,22 @@ public class BlockUtils {
 			}
 		}
 		return blocks;
+	}
+
+	private static List<Chunk> getLoadedChunks(World world, BoundingBox box) {
+		List<Chunk> chunks = new ArrayList<>();
+		int minChunkX = ((int) Math.floor(box.getMinX())) >> 4;
+		int maxChunkX = ((int) Math.floor(box.getMaxX())) >> 4;
+		int minChunkZ = ((int) Math.floor(box.getMinZ())) >> 4;
+		int maxChunkZ = ((int) Math.floor(box.getMaxZ())) >> 4;
+		for(int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
+			for(int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
+				if(world.isChunkLoaded(chunkX, chunkZ)) {
+					chunks.add(world.getChunkAt(chunkX, chunkZ));
+				}
+			}
+		}
+		return chunks;
 	}
 	
 	static List<Block> findChestsInRadius(Location loc, int radius) {

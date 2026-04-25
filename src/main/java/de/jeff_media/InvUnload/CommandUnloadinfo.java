@@ -2,7 +2,7 @@ package de.jeff_media.InvUnload;
 
 import java.util.ArrayList;
 
-import org.apache.commons.lang.StringUtils;
+import de.jeff_media.InvUnload.utils.NumberUtils;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -48,7 +48,7 @@ public class CommandUnloadinfo implements CommandExecutor {
 		Player p = (Player) sender;
 		
 		int duration = main.getConfig().getInt("laser-default-duration");
-		if(args.length>0 && StringUtils.isNumeric(args[0])) {
+		if(args.length>0 && NumberUtils.isPositiveInteger(args[0])) {
 			duration = Integer.parseInt(args[0]);
 			if(duration > main.getConfig().getInt("laser-max-duration")) {
 				duration = main.getConfig().getInt("laser-max-duration");

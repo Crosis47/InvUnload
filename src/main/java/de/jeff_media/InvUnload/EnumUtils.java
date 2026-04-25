@@ -3,20 +3,28 @@ package de.jeff_media.InvUnload;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 
+import java.util.Locale;
+
 public class EnumUtils {
 	
 	static boolean soundExists(String value) {
-		for(Sound sound: Sound.values()) {
-			if(sound.name().equalsIgnoreCase(value)) return true;
+		if(value == null) return false;
+		try {
+			Sound.valueOf(value.trim().toUpperCase(Locale.ROOT));
+			return true;
+		} catch (IllegalArgumentException ignored) {
+			return false;
 		}
-		return false;
 	}
 	
 	static boolean particleExists(String value) {
-		for(Particle particle: Particle.values()) {
-			if(particle.name().equalsIgnoreCase(value)) return true;
+		if(value == null) return false;
+		try {
+			Particle.valueOf(value.trim().toUpperCase(Locale.ROOT));
+			return true;
+		} catch (IllegalArgumentException ignored) {
+			return false;
 		}
-		return false;
 	}
 
 }

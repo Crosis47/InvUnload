@@ -17,9 +17,28 @@ When you enter /dump, it will put all items from the player's inventory (except 
 
 ## Build
 
-You will need maven to build InvUnload. You will also have to download these dependencies:
+InvUnload now targets Paper `1.21.11` and Java `21`.
 
-- PlotSquared 4 ([LINK](https://www.spigotmc.org/resources/plotsquared-v4-v5-out-now.1177/))
-- Spartan API ([LINK](https://vagdedes.com/spartan/api/SpartanAPI.jar)).
+Requirements:
 
-Just create a folder called "lib" inside the maven project and put those two .jar-files inside. No you can run ``mvn install``
+- JDK `21` or newer
+- Maven `3.9+`
+
+Optional integrations such as ChestSort, CoreProtect, ItemsAdder, Minepacks, PlotSquared, Spartan, and InventoryPages are resolved at runtime, so no manual `lib/*.jar` setup is required anymore.
+
+Build with `mvn -DskipTests package`
+
+## Debug Self-Test
+
+For local verification on a running Paper server:
+
+1. Set `debug: true` in `plugins/InvUnload/config.yml`
+2. Grant yourself `invunload.selftest`
+3. Run `/unload selftest`
+
+The harness creates a small isolated test arena in a world named `invunload-selftest` and checks:
+
+- `/searchitem` finds a matching chest
+- `/unload` only moves matching items
+- `/dump` unloads matches and dumps leftovers
+- blacklist entries prevent dumping

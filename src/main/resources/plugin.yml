@@ -1,18 +1,19 @@
 main: de.jeff_media.InvUnload.Main
 name: InvUnload
 version: ${project.version}
-api-version: 1.13
+api-version: '1.21.11'
 description: Unloads inventory in nearby matching chests
 author: mfnalex
 prefix: InvUnload
 database: false
-softdepend: [WorldGuard, ChestSort, PlotSquared, Spartan, CoreProtect, ItemsAdder]
+softdepend: [WorldGuard, ChestSort, PlotSquared, Spartan, CoreProtect, ItemsAdder, Minepacks, InventoryPages]
 commands:
   unload:
     description: Unloads inventory in nearby matching chests
     usage: |
             /<command> [radius] -- Unloads inventory in nearby matching chests
             /<command> hotbar -- Toggles whether /<command> affects your hotbar
+            /<command> selftest -- Runs the debug self-test harness
     permission: invunload.use
     aliases: [store,ul,invunload,unloadinv]
   dump:
@@ -57,3 +58,5 @@ permissions:
     description: Allows usage of the /searchitem command
   invunload.reload:
     description: Allows to reload the config using /unload reload
+  invunload.selftest:
+    description: Allows running the debug-only /unload selftest harness

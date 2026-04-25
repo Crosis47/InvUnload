@@ -1,8 +1,5 @@
 package de.jeff_media.InvUnload;
 
-import com.jeff_media.jefflib.data.McVersion;
-import com.jeff_media.updatechecker.UpdateCheckSource;
-import com.jeff_media.updatechecker.UpdateChecker;
 import de.jeff_media.InvUnload.Hooks.*;
 import de.jeff_media.InvUnload.utils.EnchantmentUtils;
 import org.bstats.bukkit.Metrics;
@@ -47,7 +44,7 @@ public class Main extends JavaPlugin implements Listener {
 	protected Visualizer visualizer;
 	protected GroupUtils groupUtils;
 
-	private UpdateChecker updateChecker;
+	private SimpleUpdateChecker updateChecker;
 
 	CommandUnload commandUnload;
 	CommandUnloadinfo commandUnloadInfo;
@@ -88,7 +85,7 @@ public class Main extends JavaPlugin implements Listener {
 
 		instance = this;
 
-		Metrics metrics = new Metrics(this, 3156);
+		new Metrics(this, 3156);
 
 		reloadCompleteConfig(false);
 
@@ -178,12 +175,13 @@ public class Main extends JavaPlugin implements Listener {
 
 		getConfig().addDefault("strict-tabcomplete",true);
 
-		if(McVersion.current().isAtLeast(1,20,6) && getConfig().getString("particle-type","").equalsIgnoreCase("WITCH_SPELL")) {
+		if(getConfig().getString("particle-type","").equalsIgnoreCase("WITCH_SPELL")) {
 			getConfig().set("particle-type","WITCH");
 		}
 
-		if(!McVersion.current().isAtLeast(1,20,6) && getConfig().getString("particle-type","").equalsIgnoreCase("WITCH")) {
-			getConfig().set("particle-type","WITCH_SPELL");
+		// Older defaults can warn on modern Paper versions, so normalize them in-memory.
+		if(getConfig().getString("sound-effect","").equalsIgnoreCase("ENTITY_PLAYER_LEVELUP")) {
+			getConfig().set("sound-effect","ENTITY_EXPERIENCE_ORB_PICKUP");
 		}
 		
 		if(!EnumUtils.particleExists(getConfig().getString("particle-type"))) {
@@ -227,7 +225,7 @@ public class Main extends JavaPlugin implements Listener {
 		// Check for updates (async, of course)
 		// When set to true, we check for updates right now, and every X hours (see
 		// updateCheckInterval)
-		updateChecker = new UpdateChecker(this, UpdateCheckSource.CUSTOM_URL,"https://api.jeff-media.com/invunload/latest-version.txt")
+		updateChecker = new SimpleUpdateChecker(this, "https://api.jeff-media.com/invunload/latest-version.txt")
 				.suppressUpToDateMessage(true)
 				.setDonationLink("https://paypal.me/mfnalex")
 				.setDownloadLink(60095)

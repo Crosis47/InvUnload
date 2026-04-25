@@ -1,6 +1,5 @@
 package de.jeff_media.InvUnload;
 
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
@@ -15,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.jeff_media.InvUnload.utils.NumberUtils;
 
 public class CommandSearchitem implements CommandExecutor {
 
@@ -37,7 +38,7 @@ public class CommandSearchitem implements CommandExecutor {
         Material mat = null;
 
         if(args.length>=2) {
-            if(StringUtils.isNumeric(args[0])) {
+            if(NumberUtils.isPositiveInteger(args[0])) {
                 radius = Integer.parseInt(args[0]);
                 if(Material.getMaterial(args[1].toUpperCase()) != null) {
                     mat = Material.getMaterial(args[1].toUpperCase());
@@ -45,7 +46,7 @@ public class CommandSearchitem implements CommandExecutor {
             } else {
                 if(Material.getMaterial(args[0].toUpperCase()) != null) {
                     mat = Material.getMaterial(args[0].toUpperCase());
-                    if(StringUtils.isNumeric(args[1])) {
+                    if(NumberUtils.isPositiveInteger(args[1])) {
                         radius = Integer.parseInt(args[1]);
                     } else {
                         p.sendMessage("Invalid radius.");
@@ -56,7 +57,7 @@ public class CommandSearchitem implements CommandExecutor {
         }
 
         if(args.length==1) {
-            if(StringUtils.isNumeric(args[0])) {
+            if(NumberUtils.isPositiveInteger(args[0])) {
                 radius = Integer.parseInt(args[0]);
                 if(p.getInventory().getItemInMainHand()!=null && p.getInventory().getItemInMainHand().getType()!=null) {
                     mat = p.getInventory().getItemInMainHand().getType();

@@ -97,7 +97,7 @@ particle-count: 100
 # You must check that the specified sound effect is valid in your specific Minecraft version!
 play-sound: true
 sound-volume: 1.0
-sound-effect: ENTITY_PLAYER_LEVELUP
+sound-effect: ENTITY_EXPERIENCE_ORB_PICKUP
 
 ##############################
 ##### Laser and Summary ######

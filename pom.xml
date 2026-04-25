@@ -12,7 +12,7 @@
 	<!-- The properties section is about to start now -->
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>1.8</java.version>
+		<java.version>21</java.version>
 	</properties>
 
 	<build>
@@ -26,10 +26,9 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
+				<version>3.14.0</version>
 				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
+					<release>${java.version}</release>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -43,13 +42,9 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.4</version>
+				<version>3.6.1</version>
 				<configuration>
 					<relocations>
-						<relocation>
-							<pattern>com.jeff_media.updatechecker</pattern>
-							<shadedPattern>de.jeff_media.InvUnload.updatechecker</shadedPattern>
-						</relocation>
 						<relocation>
 							<pattern>org.bstats</pattern>
 							<shadedPattern>de.jeff_media.InvUnload</shadedPattern>
@@ -79,43 +74,8 @@
 
 	<repositories>
 		<repository>
-			<id>spigot-repo</id>
-			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-		</repository>
-		<!-- CoreProtect -->
-		<repository>
-			<id>coreprotect-repo</id>
-			<url>http://maven.playpro.com/</url>
-		</repository>
-		<!-- WorldEdit -->
-		<repository>
-			<id>enginehub</id>
-			<url>https://maven.enginehub.org/repo/</url>
-		</repository>
-		<!-- PlotSquared -->
-		<repository>
-			<id>IntellectualSites</id>
-			<url>https://mvn.intellectualsites.com/content/groups/public/</url>
-		</repository>
-		<repository>
-			<id>jeff-media-repo</id>
-			<url>https://repo.jeff-media.de/maven2</url>
-		</repository>
-		<repository>
-			<id>pcgf-repo</id>
-			<url>https://repo.pcgamingfreaks.at/repository/maven-everything</url>
-		</repository>
-		<repository>
-			<id>CodeMC</id>
-			<url>https://repo.codemc.org/repository/maven-public</url>
-		</repository>
-		<repository>
-			<id>placeholderapi</id>
-			<url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
-		</repository>
-		<repository>
-			<id>jitpack-repo</id>
-			<url>https://jitpack.io</url>
+			<id>papermc-repo</id>
+			<url>https://repo.papermc.io/repository/maven-public/</url>
 		</repository>
 	</repositories>
 
@@ -123,31 +83,13 @@
 		<dependency>
 			<groupId>org.bstats</groupId>
 			<artifactId>bstats-bukkit</artifactId>
-			<version>1.7</version>
+			<version>3.1.0</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.spigotmc</groupId>
-			<artifactId>spigot-api</artifactId>
-			<version>1.21.3-R0.1-SNAPSHOT</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>net.coreprotect</groupId>
-			<artifactId>coreprotect</artifactId>
-			<version>2.18.2</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>at.pcgamingfreaks</groupId>
-			<artifactId>Minepacks-API</artifactId>
-			<version>2.3.8</version><!-- Check api-version shield for newest version -->
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.github.LoneDev6</groupId>
-			<artifactId>api-itemsadder</artifactId>
-			<version>2.2.1</version>
+			<groupId>io.papermc.paper</groupId>
+			<artifactId>paper-api</artifactId>
+			<version>1.21.11-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -157,59 +99,10 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.jeff-media.jefflib</groupId>
-			<artifactId>jefflib</artifactId>
-			<version>14.2.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<!--<dependency>
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations</artifactId>
-			<version>19.0.0</version>
+			<version>26.0.2</version>
 			<scope>provided</scope>
-		</dependency>-->
-		<dependency>
-			<groupId>me.vagdedes</groupId>
-			<artifactId>spartan</artifactId>
-			<version>Universal</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/lib/SpartanAPI.jar</systemPath>
-		</dependency>
-		<!-- PlotSquared API -->
-		<dependency>
-			<groupId>com.github.intellectualsites</groupId>
-			<artifactId>plotsquared</artifactId>
-			<version>4.4.495</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/lib/PlotSquared-Bukkit-4.4.495.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>com.jeff_media</groupId>
-			<artifactId>SpigotUpdateChecker</artifactId>
-			<version>2.1.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.jeff_media</groupId>
-			<artifactId>ChestSortAPI</artifactId>
-			<version>11.0.0-SNAPSHOT</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.plotsquared</groupId>
-			<artifactId>PlotSquared-Bukkit</artifactId>
-			<version>5.11.1</version>
-			<scope>provided</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>com.destroystokyo.paper</groupId>
-					<artifactId>paper-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.github.MilkBowl</groupId>
-					<artifactId>VaultAPI</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 	</dependencies>
 
