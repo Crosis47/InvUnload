@@ -216,6 +216,7 @@ public class SelfTestRunner {
         setting.unloadHotbar = false;
         setting.dumpHotbar = false;
         setting.blacklist.mats.clear();
+        setting.clearLockedSlots();
     }
 
     private Inventory chestInventory(World world, int x, int y, int z) {

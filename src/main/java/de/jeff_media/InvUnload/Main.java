@@ -2,7 +2,6 @@ package de.jeff_media.InvUnload;
 
 import de.jeff_media.InvUnload.Hooks.*;
 import de.jeff_media.InvUnload.utils.EnchantmentUtils;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -84,8 +83,6 @@ public class Main extends JavaPlugin implements Listener {
 	public void onEnable() {
 
 		instance = this;
-
-		new Metrics(this, 3156);
 
 		reloadCompleteConfig(false);
 

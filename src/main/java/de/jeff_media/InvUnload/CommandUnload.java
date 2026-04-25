@@ -76,12 +76,13 @@ public class CommandUnload implements CommandExecutor , TabCompleter {
 			return true;
 		}
 
-		if(!CoolDown.check(sender)) {
-			return true;
-		}
-
 		Player p = (Player) sender;
 		PlayerSetting setting = main.getPlayerSetting(p);
+
+		if(args.length>0 && args[0].equalsIgnoreCase("slots")) {
+			new LockedSlotsMenu(main, p).open();
+			return true;
+		}
 
 		if(args.length>0 && args[0].equalsIgnoreCase("hotbar")) {
 			if(command.getName().equals("unload")) {
@@ -93,6 +94,10 @@ public class CommandUnload implements CommandExecutor , TabCompleter {
 				if(setting.dumpHotbar) { p.sendMessage(String.format(main.messages.MSG_WILL_USE_HOTBAR,"/"+label.toLowerCase())); }
 				else { p.sendMessage(String.format(main.messages.MSG_WILL_NOT_USE_HOTBAR,"/"+label.toLowerCase())); }
 			}
+			return true;
+		}
+
+		if(!CoolDown.check(sender)) {
 			return true;
 		}
 		
@@ -211,8 +216,17 @@ public class CommandUnload implements CommandExecutor , TabCompleter {
 		if(strings.length>1) return null;
 		List<String> list = new ArrayList<>();
 		list.add("hotbar");
+		list.add("slots");
+		if(command.getName().equalsIgnoreCase("unload") && commandSender.hasPermission("invunload.selftest")) {
+			list.add("selftest");
+		}
 		if(strings.length==0) return list;
-		if("hotbar".startsWith(strings[0].toLowerCase())) return list;
-		return null;
+		List<String> matches = new ArrayList<>();
+		for(String entry : list) {
+			if(entry.startsWith(strings[0].toLowerCase())) {
+				matches.add(entry);
+			}
+		}
+		return matches.isEmpty() ? null : matches;
 	}
 }

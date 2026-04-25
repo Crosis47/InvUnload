@@ -54,12 +54,14 @@ public class InvUtils {
 		public static boolean stuffInventoryIntoAnother(@NotNull Main main, @NotNull  Player p, @NotNull Inventory destination, @NotNull boolean onlyMatchingStuff, @NotNull int startSlot, @NotNull int endSlot, @Nullable UnloadSummary summary) {
 
 		Inventory source = p.getInventory();
-		BlackList blackList = main.getPlayerSetting(p).getBlacklist();
+		PlayerSetting playerSetting = main.getPlayerSetting(p);
+		BlackList blackList = playerSetting.getBlacklist();
 
 		int start = countInventoryContents(source);
 		for(int i = startSlot; i<=endSlot; i++) {
 			ItemStack item = source.getItem(i);
 			if (item == null) continue;
+			if (playerSetting.isSlotLocked(i)) continue;
 			if (MinepacksHook.isMinepacksBackpack(item)) continue;
 			if (main.inventoryPagesHook.isButton(item)) continue;
 			if (blackList.contains(item.getType())) continue;

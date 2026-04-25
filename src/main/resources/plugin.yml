@@ -13,6 +13,7 @@ commands:
     usage: |
             /<command> [radius] -- Unloads inventory in nearby matching chests
             /<command> hotbar -- Toggles whether /<command> affects your hotbar
+            /<command> slots -- Opens the ignored slot editor
             /<command> selftest -- Runs the debug self-test harness
     permission: invunload.use
     aliases: [store,ul,invunload,unloadinv]
@@ -21,6 +22,7 @@ commands:
     usage: |
             /<command> [radius] -- Unloads inventory in nearby matching chests and dumps the rest into the nearest chests
             /<command> hotbar -- Toggles whether /<command> affects your hotbar
+            /<command> slots -- Opens the ignored slot editor
     permission: invunload.use
     aliases: [invdump,dumpinv]
   unloadinfo:

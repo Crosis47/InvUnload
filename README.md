@@ -15,6 +15,8 @@ When you enter /unload, it checks if there are chests nearby. For each chest, th
 
 When you enter /dump, it will put all items from the player's inventory (except hotbar) into nearby chests. If possible, they will be put into chests already containing matching items.
 
+Players can also open an ignored-slot editor with `/unload slots` or `/dump slots` to mark specific inventory slots that should always be skipped by both commands.
+
 ## Build
 
 InvUnload now targets Paper `1.21.11` and Java `21`.

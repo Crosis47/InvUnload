@@ -1,8 +1,9 @@
 package de.jeff_media.InvUnload;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 
 public class PlayerListener implements Listener {
 
@@ -12,9 +13,25 @@ public class PlayerListener implements Listener {
         this.main=main;
     }
 
-    void test() {
-        Player p = Bukkit.getPlayer("asd");
-        p.openInventory(p.getInventory());
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if(!(event.getView().getTopInventory().getHolder() instanceof LockedSlotsMenu menu)) {
+            return;
+        }
+
+        event.setCancelled(true);
+        if(event.getRawSlot() < 0 || event.getRawSlot() >= event.getView().getTopInventory().getSize()) {
+            return;
+        }
+
+        menu.handleClick(event.getRawSlot());
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if(event.getView().getTopInventory().getHolder() instanceof LockedSlotsMenu) {
+            event.setCancelled(true);
+        }
     }
 
 }

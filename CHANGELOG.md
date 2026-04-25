@@ -9,12 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Added a debug-only `/unload selftest` harness for local Paper verification.
 - Added a reusable self-test arena that validates `/searchitem`, `/unload`, `/dump`, and blacklist behavior.
+- Added an ignored-slot GUI that lets players choose which inventory slots `/unload` and `/dump` should skip.
 
 ### Changed
 - Updated the plugin to target Paper `1.21.11` and Java `21`.
 - Updated the build to package cleanly on modern Java and Paper toolchains.
 - Switched optional integrations such as ChestSort, CoreProtect, ItemsAdder, Minepacks, PlotSquared, Spartan, and InventoryPages to runtime-safe detection so the plugin no longer needs manual companion API jars just to build.
 - Replaced the previous external Jeff-Media helper dependencies with local implementations of the required functionality.
+- Added persistent per-player locked slot handling to the unload and dump flow.
+- Removed bundled `bStats` metrics and the now-unneeded shading step from the build.
 
 ### Fixed
 - Fixed startup compatibility on Paper `1.21.11`.
