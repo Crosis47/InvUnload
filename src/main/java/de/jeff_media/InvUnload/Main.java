@@ -5,6 +5,7 @@ import de.jeff_media.InvUnload.utils.EnchantmentUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +43,7 @@ public class Main extends JavaPlugin implements Listener {
 	protected InventoryPagesHook inventoryPagesHook;
 	protected Visualizer visualizer;
 	protected GroupUtils groupUtils;
+	protected LockedSlotsPreview lockedSlotsPreview;
 
 	private SimpleUpdateChecker updateChecker;
 
@@ -76,6 +78,9 @@ public class Main extends JavaPlugin implements Listener {
 
 	@Override
 	public void onDisable() {
+		if(lockedSlotsPreview != null) {
+			lockedSlotsPreview.restoreAll();
+		}
 		saveAllPlayerSettings();
 	}
 
@@ -214,6 +219,23 @@ public class Main extends JavaPlugin implements Listener {
 		getCommand("blacklist").setExecutor(commandBlacklist);
 		getCommand("blacklist").setTabCompleter(commandBlacklist);
 	}
+
+	private LockedSlotsPreview createLockedSlotsPreview() {
+		Plugin protocolLib = Bukkit.getPluginManager().getPlugin("ProtocolLib");
+		if(protocolLib == null || !protocolLib.isEnabled()) {
+			getLogger().info("ProtocolLib not found. Ignored slot previews will use the top menu only.");
+			return null;
+		}
+
+		try {
+			com.comphenix.protocol.ProtocolLibrary.getProtocolManager().removePacketListeners(this);
+			getLogger().info("Hooked into ProtocolLib for ignored slot previews.");
+			return new ProtocolLibLockedSlotsPreview(this);
+		} catch (Throwable throwable) {
+			getLogger().warning("Could not hook into ProtocolLib for ignored slot previews: " + throwable.getMessage());
+			return null;
+		}
+	}
 	
 	private void initUpdateChecker() {
 
@@ -265,12 +287,16 @@ public class Main extends JavaPlugin implements Listener {
 			if (updateChecker != null) {
 				updateChecker.stop();
 			}
+			if(lockedSlotsPreview != null) {
+				lockedSlotsPreview.restoreAll();
+			}
 			saveAllPlayerSettings();
 		}
 		messages = new Messages(this);
 		initUpdateChecker();
 		blockUtils = new BlockUtils(this);
 		visualizer = new Visualizer(this);
+		lockedSlotsPreview = createLockedSlotsPreview();
 		File groupsFile = new File(this.getDataFolder()+File.separator+"groups.yml");
 		groupUtils = new GroupUtils(this,groupsFile);
 		getServer().getPluginManager().registerEvents(new PlayerListener(this),this);

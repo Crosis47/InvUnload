@@ -3,7 +3,6 @@ package de.jeff_media.InvUnload;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -17,6 +16,9 @@ import java.util.List;
 public class LockedSlotsMenu implements InventoryHolder {
 
     private static final String TITLE = ChatColor.DARK_GREEN + "Ignored Slots";
+    private static final int MENU_SIZE = 9;
+    private static final Material LOCKED_INDICATOR = Material.RED_STAINED_GLASS_PANE;
+    private static final Material UNLOCKED_INDICATOR = Material.LIME_STAINED_GLASS_PANE;
     private static final int[] HOTBAR_SLOTS = {0, 1, 2, 3, 4, 5, 6, 7, 8};
     private static final int[] INVENTORY_SLOTS = {
             9, 10, 11, 12, 13, 14, 15, 16, 17,
@@ -31,13 +33,14 @@ public class LockedSlotsMenu implements InventoryHolder {
     LockedSlotsMenu(Main main, Player player) {
         this.main = main;
         this.player = player;
-        inventory = Bukkit.createInventory(this, 45, TITLE);
+        inventory = Bukkit.createInventory(this, main.lockedSlotsPreview == null ? 45 : MENU_SIZE, TITLE);
         refresh();
     }
 
     void open() {
         refresh();
         player.openInventory(inventory);
+        refreshPlayerInventoryPreview();
     }
 
     @Override
@@ -45,7 +48,11 @@ public class LockedSlotsMenu implements InventoryHolder {
         return inventory;
     }
 
-    void handleClick(int rawSlot) {
+    Player getPlayer() {
+        return player;
+    }
+
+    void handleMenuClick(int rawSlot) {
         PlayerSetting setting = main.getPlayerSetting(player);
         switch (rawSlot) {
             case 2 -> {
@@ -74,48 +81,107 @@ public class LockedSlotsMenu implements InventoryHolder {
                 player.sendActionBar(ChatColor.GREEN + "Cleared all ignored slots.");
             }
             default -> {
-                int playerSlot = playerSlotFromMenuSlot(rawSlot);
-                if(playerSlot == -1) return;
-                setting.toggleLockedSlot(playerSlot);
-                persist(setting);
-                boolean locked = setting.isSlotLocked(playerSlot);
-                player.sendActionBar((locked ? ChatColor.RED : ChatColor.GREEN) + (locked ? "Locked " : "Unlocked ") + describeSlot(playerSlot) + ".");
+                if(main.lockedSlotsPreview == null) {
+                    handlePlayerInventoryClick(playerSlotFromMenuSlot(rawSlot));
+                }
+                return;
             }
         }
         refresh();
+        refreshPlayerInventoryPreview();
+    }
+
+    void handlePlayerInventoryClick(int playerSlot) {
+        if(!isValidPlayerSlot(playerSlot)) {
+            return;
+        }
+
+        PlayerSetting setting = main.getPlayerSetting(player);
+        setting.toggleLockedSlot(playerSlot);
+        persist(setting);
+
+        boolean locked = setting.isSlotLocked(playerSlot);
+        player.sendActionBar((locked ? ChatColor.RED : ChatColor.GREEN) + (locked ? "Locked " : "Unlocked ") + describeSlot(playerSlot) + ".");
+
+        if(main.lockedSlotsPreview == null) {
+            refresh();
+        } else {
+            refreshPlayerInventoryPreview(playerSlot);
+        }
+    }
+
+    void close() {
+        if(main.lockedSlotsPreview != null) {
+            main.lockedSlotsPreview.restore(player);
+        }
+    }
+
+    void refreshPlayerInventoryPreview() {
+        if(main.lockedSlotsPreview == null) {
+            return;
+        }
+
+        Bukkit.getScheduler().runTask(main, () -> {
+            if(player.isOnline() && player.getOpenInventory().getTopInventory().getHolder() == this) {
+                main.lockedSlotsPreview.show(this);
+            }
+        });
+    }
+
+    void refreshPlayerInventoryPreview(int playerSlot) {
+        if(main.lockedSlotsPreview == null) {
+            return;
+        }
+        if(!player.isOnline() || player.getOpenInventory().getTopInventory().getHolder() != this) {
+            return;
+        }
+
+        main.lockedSlotsPreview.showSlot(this, playerSlot);
+        Bukkit.getScheduler().runTask(main, () -> {
+            if(player.isOnline() && player.getOpenInventory().getTopInventory().getHolder() == this) {
+                main.lockedSlotsPreview.showSlot(this, playerSlot);
+            }
+        });
     }
 
     void refresh() {
         inventory.clear();
 
-        for(int slot = 0; slot < 9; slot++) {
+        for(int slot = 0; slot < inventory.getSize(); slot++) {
             inventory.setItem(slot, createFiller());
         }
 
         inventory.setItem(0, createButton(
                 Material.BOOK,
                 ChatColor.YELLOW + "How it works",
-                ChatColor.GRAY + "Click any slot below to toggle it.",
-                ChatColor.GRAY + "Locked slots are ignored by",
-                ChatColor.GRAY + "/unload and /dump."
+                main.lockedSlotsPreview == null
+                        ? ChatColor.GRAY + "Click slot previews below"
+                        : ChatColor.GRAY + "Click slots in your inventory",
+                ChatColor.GRAY + "below to toggle them.",
+                ChatColor.RED + "Red panes are ignored slots.",
+                ChatColor.GREEN + "Lime panes are included slots.",
+                ChatColor.LIGHT_PURPLE + "Glint means an item slot is ignored.",
+                ChatColor.GRAY + "Red buttons lock slot groups.",
+                ChatColor.GRAY + "Lime buttons unlock slot groups.",
+                ChatColor.GRAY + "The barrier clears all ignored slots."
         ));
         inventory.setItem(2, createButton(
-                Material.RED_STAINED_GLASS_PANE,
+                LOCKED_INDICATOR,
                 ChatColor.RED + "Lock hotbar",
                 ChatColor.GRAY + "Ignore hotbar slots 1-9."
         ));
         inventory.setItem(3, createButton(
-                Material.LIME_STAINED_GLASS_PANE,
+                UNLOCKED_INDICATOR,
                 ChatColor.GREEN + "Unlock hotbar",
                 ChatColor.GRAY + "Re-enable hotbar slots 1-9."
         ));
         inventory.setItem(5, createButton(
-                Material.REDSTONE_BLOCK,
+                LOCKED_INDICATOR,
                 ChatColor.RED + "Lock inventory",
                 ChatColor.GRAY + "Ignore inventory slots 10-36."
         ));
         inventory.setItem(6, createButton(
-                Material.EMERALD_BLOCK,
+                UNLOCKED_INDICATOR,
                 ChatColor.GREEN + "Unlock inventory",
                 ChatColor.GRAY + "Re-enable inventory slots 10-36."
         ));
@@ -125,10 +191,12 @@ public class LockedSlotsMenu implements InventoryHolder {
                 ChatColor.GRAY + "Reset every slot back to normal."
         ));
 
-        for(int menuSlot = 9; menuSlot < inventory.getSize(); menuSlot++) {
-            int playerSlot = playerSlotFromMenuSlot(menuSlot);
-            if(playerSlot == -1) continue;
-            inventory.setItem(menuSlot, createSlotPreview(playerSlot));
+        if(main.lockedSlotsPreview == null) {
+            for(int menuSlot = 9; menuSlot < inventory.getSize(); menuSlot++) {
+                int playerSlot = playerSlotFromMenuSlot(menuSlot);
+                if(playerSlot == -1) continue;
+                inventory.setItem(menuSlot, createSlotPreview(playerSlot));
+            }
         }
     }
 
@@ -136,18 +204,27 @@ public class LockedSlotsMenu implements InventoryHolder {
         setting.save(main.getPlayerFile(player.getUniqueId()), main);
     }
 
-    private ItemStack createSlotPreview(int playerSlot) {
+    ItemStack createSlotPreview(int playerSlot) {
+        return createSlotPreview(playerSlot, false);
+    }
+
+    ItemStack createPlayerInventoryPreview(int playerSlot) {
+        return createSlotPreview(playerSlot, playerSlot <= 8);
+    }
+
+    private ItemStack createSlotPreview(int playerSlot, boolean hideTooltip) {
         ItemStack current = player.getInventory().getItem(playerSlot);
         boolean locked = main.getPlayerSetting(player).isSlotLocked(playerSlot);
 
         if(current == null || current.getType() == Material.AIR) {
-            Material material = locked ? Material.RED_STAINED_GLASS_PANE : Material.GRAY_STAINED_GLASS_PANE;
+            Material material = locked ? LOCKED_INDICATOR : UNLOCKED_INDICATOR;
             return createButton(
                     material,
-                    (locked ? ChatColor.RED : ChatColor.GRAY) + describeSlot(playerSlot),
+                    hideTooltip ? " " : (locked ? ChatColor.RED : ChatColor.GREEN) + describeSlot(playerSlot),
+                    hideTooltip,
                     locked
                             ? ChatColor.RED + "Ignored by /unload and /dump."
-                            : ChatColor.GREEN + "Click to ignore this slot."
+                            : ChatColor.GREEN + "Included in /unload and /dump."
             );
         }
 
@@ -164,9 +241,12 @@ public class LockedSlotsMenu implements InventoryHolder {
         lore.add(ChatColor.YELLOW + "Click to toggle");
         meta.setLore(lore);
 
+        if(hideTooltip) {
+            meta.setHideTooltip(true);
+        }
+
         if(locked) {
-            meta.addEnchant(Enchantment.LURE, 1, true);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            meta.setEnchantmentGlintOverride(true);
         }
 
         preview.setItemMeta(meta);
@@ -174,6 +254,10 @@ public class LockedSlotsMenu implements InventoryHolder {
     }
 
     private ItemStack createButton(Material material, String name, String... loreLines) {
+        return createButton(material, name, false, loreLines);
+    }
+
+    private ItemStack createButton(Material material, String name, boolean hideTooltip, String... loreLines) {
         ItemStack itemStack = new ItemStack(material);
         ItemMeta meta = itemStack.getItemMeta();
         if(meta == null) {
@@ -181,6 +265,7 @@ public class LockedSlotsMenu implements InventoryHolder {
         }
         meta.setDisplayName(name);
         meta.setLore(List.of(loreLines));
+        meta.setHideTooltip(hideTooltip);
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         itemStack.setItemMeta(meta);
         return itemStack;
@@ -188,6 +273,10 @@ public class LockedSlotsMenu implements InventoryHolder {
 
     private ItemStack createFiller() {
         return createButton(Material.BLACK_STAINED_GLASS_PANE, " ", " ");
+    }
+
+    private boolean isValidPlayerSlot(int slot) {
+        return slot >= 0 && slot <= 35;
     }
 
     private int playerSlotFromMenuSlot(int menuSlot) {
