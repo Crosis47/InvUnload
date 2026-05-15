@@ -35,10 +35,16 @@ commands:
     usage: |
             /<command> -- Searches for your currently held item
             /<command> <item> -- Searches for the given item
-            /<command> <radius> -- Searches for your currently held item in the given radius
-            /<command> <item> <radius> -- Searches for the given item in the given radius
+            /<command> <enchantment> -- Searches for items with the given enchantment
+            /<command> [radius] -- Searches for your currently held item in the configured or given radius
+            /<command> <item> [radius] -- Searches for the given item in the configured or given radius
+            /<command> <item> <enchantment> [radius] -- Searches for the given enchanted item
     aliases: [search,chestsearch]
     permission: invunload.search
+  searchtake:
+    description: Takes an item from a clickable /searchitem result
+    usage: /<command> <token>
+    permission: invunload.search.take
   blacklist:
     description: Blacklists an item so it is ignored by /unload
     usage: |
@@ -58,6 +64,10 @@ permissions:
     description: Allows usage of command /unload, /dump, /unloadinfo and /blacklist
   invunload.search:
     description: Allows usage of the /searchitem command
+    children:
+      invunload.search.take: true
+  invunload.search.take:
+    description: Allows taking items through clickable /searchitem result links
   invunload.reload:
     description: Allows to reload the config using /unload reload
   invunload.selftest:

@@ -17,6 +17,8 @@ When you enter /dump, it will put all items from the player's inventory (except 
 
 Players can also open an ignored-slot editor with `/unload slots` or `/dump slots` to mark specific inventory slots that should always be skipped by both commands.
 
+`/searchitem` can search by material, enchantment, or both. For example, `/searchitem MENDING` finds enchanted items and enchanted books with Mending, while `/searchitem DIAMOND_PICKAXE MENDING 10` narrows the search to nearby Mending diamond pickaxes. Search uses configurable `default-search-radius` and `max-search-radius` settings, both with group overrides. Search summaries include the matching chest slot numbers, and players with `invunload.search.take` can hover a result slot to preview the item tooltip or click it to move that stack into their inventory while they are within the configured `search-take-radius`.
+
 ## Build
 
 InvUnload now targets Paper `1.21.11` and Java `21`.
@@ -41,6 +43,10 @@ For local verification on a running Paper server:
 The harness creates a small isolated test arena in a world named `invunload-selftest` and checks:
 
 - `/searchitem` finds a matching chest
+- `/searchitem` uses the configured default search radius
+- `/searchitem` reports matching chest slot numbers
+- clickable `/searchitem` take links keep item tooltip data and move the reported stack to the player
+- `/searchitem` finds items and enchanted books with a specific enchantment
 - `/unload` only moves matching items
 - `/dump` unloads matches and dumps leftovers
 - blacklist entries prevent dumping

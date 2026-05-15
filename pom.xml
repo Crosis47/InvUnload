@@ -29,6 +29,8 @@
 				<version>3.14.0</version>
 				<configuration>
 					<release>${java.version}</release>
+					<!-- Fork javac to keep Windows/JDK 26 jar-close failures in .mvn/repository from failing Maven. -->
+					<fork>true</fork>
 				</configuration>
 			</plugin>
 			<plugin>

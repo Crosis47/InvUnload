@@ -1,5 +1,6 @@
 # Maven build output
 /target/
+/.mvn/repository/
 /dependency-reduced-pom.xml
 
 # Local Paper test server

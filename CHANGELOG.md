@@ -10,10 +10,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added a debug-only `/unload selftest` harness for local Paper verification.
 - Added a reusable self-test arena that validates `/searchitem`, `/unload`, `/dump`, and blacklist behavior.
 - Added an ignored-slot GUI that lets players choose which inventory slots `/unload` and `/dump` should skip.
+- Added `/searchitem` support for finding items and enchanted books by enchantment, with optional material filters.
+- Added chest slot numbers to `/searchitem` summaries.
+- Added clickable `/searchitem` take links that move a reported stack from the chest to the player after rechecking chest access.
+- Added item tooltips when hovering clickable `/searchitem` take links.
+- Added separate configurable `/searchitem` default and maximum radii, plus a configurable take-link distance limit.
 
 ### Changed
 - Updated the plugin to target Paper `1.21.11` and Java `21`.
 - Updated the build to package cleanly on modern Java and Paper toolchains.
+- Updated `/searchitem` enchantment tab completion to read from the server enchantment registry, including data-driven enchantments.
+- Updated `/searchitem` take links to use a dedicated internal `/searchtake` command so clicks do not fall back into normal search parsing.
+- Updated `/searchitem` to use `default-search-radius` and `max-search-radius` instead of sharing `/unload` and `/dump` radius settings.
+- Updated Maven to use `.mvn/repository` as the repository-local dependency cache.
+- Updated the Maven compiler to fork `javac`, avoiding Windows jar-close failures with the repository-local dependency cache.
 - Switched optional integrations such as ChestSort, CoreProtect, ItemsAdder, Minepacks, PlotSquared, Spartan, and InventoryPages to runtime-safe detection so the plugin no longer needs manual companion API jars just to build.
 - Replaced the previous external Jeff-Media helper dependencies with local implementations of the required functionality.
 - Added persistent per-player locked slot handling to the unload and dump flow.

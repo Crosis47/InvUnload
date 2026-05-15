@@ -9,9 +9,11 @@ import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.permissions.PermissionAttachment;
 
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ public class SelfTestRunner {
 
         attachment.setPermission("invunload.use", true);
         attachment.setPermission("invunload.search", true);
+        attachment.setPermission("invunload.search.take", true);
         attachment.setPermission("invunload.selftest", true);
 
         try {
@@ -51,6 +54,7 @@ public class SelfTestRunner {
             clearPlayerState(player);
 
             runSearchTest(player, world, report);
+            runEnchantmentSearchTest(player, world, report);
             runUnloadTest(player, world, report);
             runDumpTest(player, world, report);
             runBlacklistTest(player, world, report);
@@ -75,6 +79,10 @@ public class SelfTestRunner {
         config.set("play-sound", false);
         config.set("laser-animation", false);
         config.set("always-show-summary", false);
+        config.set("max-search-radius", TEST_RADIUS);
+        config.set("default-search-radius", TEST_RADIUS);
+        config.set("search-take-radius", TEST_RADIUS);
+        config.set("search-take-links", true);
     }
 
     private World prepareWorld() {
@@ -123,12 +131,66 @@ public class SelfTestRunner {
         Inventory matchingChest = chestInventory(world, 0, TEST_Y, 0);
         matchingChest.addItem(new ItemStack(Material.DIAMOND, 32));
 
-        player.performCommand("searchitem DIAMOND " + TEST_RADIUS);
+        player.performCommand("searchitem DIAMOND");
 
         ArrayList<org.bukkit.block.Block> affected = main.visualizer.lastUnloads.get(player.getUniqueId());
-        boolean foundChest = affected != null && affected.stream().anyMatch(block -> block.getLocation().equals(new Location(world, 0, TEST_Y, 0)));
+        boolean foundChest = wasChestHighlighted(affected, world, 0);
         report.check("searchitem finds matching chest", foundChest,
                 foundChest ? "Found DIAMOND chest at expected location." : "Expected DIAMOND chest was not highlighted.");
+
+        UnloadSummary summary = main.visualizer.unloadSummaries.get(player.getUniqueId());
+        List<Integer> slots = summary == null ? new ArrayList<>() : summary.getSearchSlots(new Location(world, 0, TEST_Y, 0), Material.DIAMOND);
+        report.check("searchitem reports matching chest slot",
+                slots.size() == 1 && slots.contains(1),
+                "Reported DIAMOND slots: " + slots);
+
+        List<UnloadSummary.SearchSlot> slotEntries = summary == null ? new ArrayList<>() : summary.getSearchSlotEntries(new Location(world, 0, TEST_Y, 0), Material.DIAMOND);
+        String takeCommand = slotEntries.isEmpty() ? null : slotEntries.get(0).getTakeCommand();
+        ItemStack hoverSnapshot = slotEntries.isEmpty() ? null : slotEntries.get(0).getItemSnapshot();
+        report.check("searchitem take link keeps item tooltip data",
+                hoverSnapshot != null && hoverSnapshot.isSimilar(new ItemStack(Material.DIAMOND)),
+                "Tooltip snapshot: " + (hoverSnapshot == null ? "none" : hoverSnapshot.getType().name()));
+
+        if(takeCommand != null && takeCommand.startsWith("/")) {
+            player.performCommand(takeCommand.substring(1));
+        }
+
+        int playerDiamonds = countPlayerInventory(player, Material.DIAMOND);
+        int chestDiamonds = count(matchingChest, Material.DIAMOND);
+        report.check("searchitem take link moves matching stack",
+                playerDiamonds == 32 && chestDiamonds == 0,
+                "Player diamonds: " + playerDiamonds + ", chest diamonds: " + chestDiamonds);
+    }
+
+    private void runEnchantmentSearchTest(Player player, World world, TestReport report) {
+        resetContainers(world);
+        clearPlayerState(player);
+
+        Enchantment mending = SearchItemQuery.parseEnchantment("mending");
+        if(mending == null) {
+            report.fail("searchitem finds enchanted items", "MENDING enchantment was not available.");
+            return;
+        }
+
+        Inventory matchingChest = chestInventory(world, 0, TEST_Y, 0);
+        matchingChest.addItem(enchantedItem(Material.DIAMOND_PICKAXE, mending));
+
+        Inventory plainChest = chestInventory(world, 3, TEST_Y, 0);
+        plainChest.addItem(new ItemStack(Material.DIAMOND_PICKAXE));
+
+        Inventory bookChest = chestInventory(world, 6, TEST_Y, 0);
+        bookChest.addItem(enchantedBook(mending));
+
+        player.performCommand("searchitem MENDING " + TEST_RADIUS);
+
+        ArrayList<org.bukkit.block.Block> affected = main.visualizer.lastUnloads.get(player.getUniqueId());
+        boolean foundEnchantedItem = wasChestHighlighted(affected, world, 0);
+        boolean ignoredPlainItem = !wasChestHighlighted(affected, world, 3);
+        boolean foundEnchantedBook = wasChestHighlighted(affected, world, 6);
+
+        report.check("searchitem finds enchanted items",
+                foundEnchantedItem && ignoredPlainItem && foundEnchantedBook,
+                "Item chest: " + foundEnchantedItem + ", plain chest ignored: " + ignoredPlainItem + ", book chest: " + foundEnchantedBook);
     }
 
     private void runUnloadTest(Player player, World world, TestReport report) {
@@ -237,6 +299,24 @@ public class SelfTestRunner {
         return count(player.getInventory(), material);
     }
 
+    private boolean wasChestHighlighted(ArrayList<org.bukkit.block.Block> affected, World world, int x) {
+        return affected != null && affected.stream().anyMatch(block -> block.getLocation().equals(new Location(world, x, TEST_Y, 0)));
+    }
+
+    private ItemStack enchantedItem(Material material, Enchantment enchantment) {
+        ItemStack item = new ItemStack(material);
+        item.addUnsafeEnchantment(enchantment, 1);
+        return item;
+    }
+
+    private ItemStack enchantedBook(Enchantment enchantment) {
+        ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
+        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+        meta.addStoredEnchant(enchantment, 1, true);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     private static class ConfigSnapshot {
 
         private final Map<String, Object> values = new LinkedHashMap<>();
@@ -248,6 +328,10 @@ public class SelfTestRunner {
             snapshot(config, "play-sound");
             snapshot(config, "laser-animation");
             snapshot(config, "always-show-summary");
+            snapshot(config, "max-search-radius");
+            snapshot(config, "default-search-radius");
+            snapshot(config, "search-take-radius");
+            snapshot(config, "search-take-links");
         }
 
         private void snapshot(FileConfiguration config, String path) {

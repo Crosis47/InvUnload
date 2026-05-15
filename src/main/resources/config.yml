@@ -33,7 +33,9 @@
 # /dump hotbar:         Toggles whether /dump will also dump items from your hotbar
 
 # /unloadinfo (or /uli):    Shows a summary about the last /unload or /dump that lets you know which items went into which chest
-# /searchitem (or /search): Searches in nearby chests for a given item and displays the result like /unloadinfo.
+# /searchitem (or /search): Searches in nearby chests for a given item or enchantment and displays the result like /unloadinfo.
+# /searchitem <enchantment>: Searches for all items with the given enchantment
+# /searchitem <item> <enchantment>: Searches for a specific enchanted item
 
 # /blacklist:                   Shows your per-player blacklist. Blacklisted items will not be affected by /unload or /dump.
 # /blacklist add:               Adds the item you are currently holding to your blacklist
@@ -63,6 +65,19 @@ max-chest-radius: 20
 # a radius. Also applies to /dump
 # Can be overridden for custom groups. See groups.yml
 default-chest-radius: 10
+
+# Players can use /searchitem <query> <radius> to search nearby chests
+# within that radius. Can be overridden for custom groups. See groups.yml
+max-search-radius: 20
+
+# The default radius is used when players use /searchitem without specifying
+# a radius. Can be overridden for custom groups. See groups.yml
+default-search-radius: 10
+
+# Players must still be within this many blocks of the reported chest when
+# clicking a /searchitem take link. Can be overridden for custom groups.
+# Set to -1 to allow take links from any distance.
+search-take-radius: 10
 
 # When true, only items with the exact same enchantments and levels will
 # be taken into account when using /unload
@@ -193,6 +208,10 @@ use-itemsadder: true
 # When set to true, entering "oak" will result in suggestions for all items starting with "oak".
 # When set to false, also items beginning with "dark_oak" etc. are suggested.
 strict-tabcomplete: true
+
+# When true, /searchitem result slots include clickable take links.
+# Players still need invunload.search.take and chest access checks must pass.
+search-take-links: true
 
 ##########################
 ##### Update Checker #####
@@ -500,4 +519,4 @@ message-cooldown: "&cPlease wait a moment before running the command again."
 debug: false
 
 # please do not change the following line manually!
-config-version: 36
+config-version: 38

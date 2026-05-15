@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class MaterialTabCompleter implements TabCompleter {
 
@@ -23,6 +24,8 @@ public class MaterialTabCompleter implements TabCompleter {
         for(Material mat : Material.values()) {
             mats.add(mat.name());
         }
+        mats.add("enchant");
+        mats.add("enchantment");
         mats.add("inv");
         mats.add("inventory");
         mats.add("hotbar");
@@ -36,15 +39,34 @@ public class MaterialTabCompleter implements TabCompleter {
 
         ArrayList<String> results = new ArrayList<>();
         String lastArg = args[args.length-1];
+        String normalizedLastArg = lastArg.toUpperCase(Locale.ROOT);
+        List<String> candidates = getCandidates(args);
 
-        for(String mat : mats) {
+        for(String mat : candidates) {
+            String normalizedMat = mat.toUpperCase(Locale.ROOT);
             if(main.getConfig().getBoolean("strict-tabcomplete")) {
-                if(mat.startsWith(lastArg.toUpperCase())) results.add(mat);
+                if(normalizedMat.startsWith(normalizedLastArg)) results.add(mat);
             } else {
-                if (mat.contains(lastArg.toUpperCase())) results.add(mat);
+                if (normalizedMat.contains(normalizedLastArg)) results.add(mat);
             }
         }
 
         return results;
+    }
+
+    private List<String> getCandidates(String[] args) {
+        ArrayList<String> enchantments = SearchItemQuery.getEnchantmentNames();
+        if(args.length >= 2 && isEnchantmentKeyword(args[args.length - 2])) {
+            return enchantments;
+        }
+
+        ArrayList<String> candidates = new ArrayList<>(mats);
+        candidates.addAll(enchantments);
+        return candidates;
+    }
+
+    private boolean isEnchantmentKeyword(String input) {
+        String normalized = SearchItemQuery.normalize(input);
+        return normalized.equals("enchant") || normalized.equals("enchantment") || normalized.equals("enchanted");
     }
 }

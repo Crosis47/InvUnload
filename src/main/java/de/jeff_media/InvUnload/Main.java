@@ -28,7 +28,7 @@ public class Main extends JavaPlugin implements Listener {
 	int mcMinorVersion; // 14 for 1.14, 13 for 1.13, ...
 
 	@SuppressWarnings("FieldCanBeLocal")
-	private final int currentConfigVersion = 36;
+	private final int currentConfigVersion = 38;
 
 	public Messages messages;
 	protected BlockUtils blockUtils;
@@ -146,6 +146,10 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("default-chest-radius", 10);
 		defaultChestRadius = getConfig().getInt("default-chest-radius");
 
+		getConfig().addDefault("max-search-radius", 20);
+		getConfig().addDefault("default-search-radius", 10);
+		getConfig().addDefault("search-take-radius", 10);
+
 		getConfig().addDefault("unload-before-dumping", true);
 
 		getConfig().addDefault("check-interval", 4);
@@ -176,6 +180,7 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("laser-moves-with-player", false);
 
 		getConfig().addDefault("strict-tabcomplete",true);
+		getConfig().addDefault("search-take-links",true);
 
 		if(getConfig().getString("particle-type","").equalsIgnoreCase("WITCH_SPELL")) {
 			getConfig().set("particle-type","WITCH");
@@ -216,6 +221,7 @@ public class Main extends JavaPlugin implements Listener {
 		getCommand("unloadinfo").setExecutor(commandUnloadInfo);
 		getCommand("searchitem").setExecutor(commandSearchitem);
 		getCommand("searchitem").setTabCompleter(materialTabCompleter);
+		getCommand("searchtake").setExecutor(commandSearchitem);
 		getCommand("blacklist").setExecutor(commandBlacklist);
 		getCommand("blacklist").setTabCompleter(commandBlacklist);
 	}

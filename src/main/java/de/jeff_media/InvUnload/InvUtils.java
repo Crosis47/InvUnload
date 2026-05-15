@@ -1,6 +1,7 @@
 package de.jeff_media.InvUnload;
 
 import de.jeff_media.InvUnload.utils.ShulkerUtils;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.Player;
@@ -12,14 +13,31 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 
 public class InvUtils {
-	static boolean searchItemInContainers(Material mat, Inventory destination, UnloadSummary summary) {
+	static boolean searchItemInContainers(Material mat, Inventory destination, Location containerLocation, UnloadSummary summary, CommandSearchitem commandSearchitem, Player player) {
 		if (BlockUtils.doesChestContain(destination, new ItemStack(mat))) {
-			int amount = BlockUtils.doesChestContainCount(destination, mat);
-
-			summary.protocolUnload(destination.getLocation(), mat, amount);
-			return true;
+			boolean found = false;
+			for(int slot = 0; slot < destination.getSize(); slot++) {
+				ItemStack item = destination.getItem(slot);
+				if(item == null || item.getType() != mat) continue;
+				summary.protocolSearchResult(containerLocation, mat, item.getAmount(), slot,
+						commandSearchitem.createTakeCommand(player, containerLocation, slot, item), item);
+				found = true;
+			}
+			return found;
 		}
 		return false;
+	}
+
+	static boolean searchItemInContainers(SearchItemQuery query, Inventory destination, Location containerLocation, UnloadSummary summary, CommandSearchitem commandSearchitem, Player player) {
+		boolean found = false;
+		for(int slot = 0; slot < destination.getSize(); slot++) {
+			ItemStack item = destination.getItem(slot);
+			if(!query.matches(item)) continue;
+			summary.protocolSearchResult(containerLocation, item.getType(), item.getAmount(), slot,
+					commandSearchitem.createTakeCommand(player, containerLocation, slot, item), item);
+			found = true;
+		}
+		return found;
 	}
 	
 	static ArrayList<ItemStack> inventoryToArrayList(Inventory source) {

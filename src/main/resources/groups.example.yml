@@ -1,13 +1,22 @@
-# You can define custom default-radius and max-radius values for certain groups.
+# You can define custom radius values for certain groups.
 # Players will need the invunload.group.[groupname] permission.
 # Note: You MUST rename this file to groups.yml if you wish to use it.
 
 admin:
   default-chest-radius: 25
   max-chest-radius: 50
+  default-search-radius: 25
+  max-search-radius: 50
+  search-take-radius: 25
 mod:
   default-chest-radius: 20
   max-chest-radius: 40
+  default-search-radius: 20
+  max-search-radius: 40
+  search-take-radius: 20
 donor:
   default-chest-radius: 15
   max-chest-radius: 30
+  default-search-radius: 15
+  max-search-radius: 30
+  search-take-radius: 15
