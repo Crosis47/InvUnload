@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.events.ListenerPriority;
+import com.comphenix.protocol.wrappers.BukkitConverters;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -162,29 +163,32 @@ class ProtocolLibLockedSlotsPreview implements LockedSlotsPreview {
 
     private void rewriteWindowItems(PacketContainer packet, LockedSlotsMenu menu) {
         int windowId = packet.getIntegers().read(0);
-        if(!isPreviewWindow(menu.getPlayer(), windowId) || packet.getItemListModifier().size() == 0) {
+        var itemLists = packet.getSpecificModifier(List.class);
+        if(!isPreviewWindow(menu.getPlayer(), windowId) || itemLists.size() == 0) {
             return;
         }
 
-        List<ItemStack> original = packet.getItemListModifier().read(0);
+        List<?> original = itemLists.read(0);
         if(original == null || original.isEmpty()) {
             return;
         }
 
-        List<ItemStack> preview = new ArrayList<>(original);
+        // Preserve native stacks that are not previews. ProtocolLib 5.4.0's
+        // native-to-Bukkit converter calls asCraftMirror, removed in Paper 26.3.
+        List<Object> preview = new ArrayList<>(original);
         for(int playerSlot = 9; playerSlot <= 35; playerSlot++) {
             replaceProtocolSlot(preview, playerSlot, menu.createPlayerInventoryPreview(playerSlot));
         }
         for(int playerSlot = 0; playerSlot <= 8; playerSlot++) {
             replaceProtocolSlot(preview, playerSlot, menu.createPlayerInventoryPreview(playerSlot));
         }
-        packet.getItemListModifier().write(0, preview);
+        itemLists.write(0, preview);
     }
 
-    private void replaceProtocolSlot(List<ItemStack> items, int playerSlot, ItemStack itemStack) {
+    private void replaceProtocolSlot(List<Object> items, int playerSlot, ItemStack itemStack) {
         int protocolSlot = protocolSlotFromPlayerSlot(playerSlot);
         if(protocolSlot >= 0 && protocolSlot < items.size()) {
-            items.set(protocolSlot, itemStack);
+            items.set(protocolSlot, BukkitConverters.getItemStackConverter().getGeneric(itemStack));
         }
     }
 

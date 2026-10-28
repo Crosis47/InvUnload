@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [5.3.0] - 2026-10-28
+
 ### Added
+- Added a same-JAR Paper compatibility workflow for `1.21.11`, `26.1.2`, and `26.3`, plus a reusable isolated-server verification script.
+- Expanded self-tests for combined search filters, locked slot persistence/previews, and take-link access, distance, world, permission, replay, and inventory-capacity safeguards.
 - Added a debug-only `/unload selftest` harness for local Paper verification.
 - Added a reusable self-test arena that validates `/searchitem`, `/unload`, `/dump`, and blacklist behavior.
 - Added an ignored-slot GUI that lets players choose which inventory slots `/unload` and `/dump` should skip.
@@ -17,7 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added separate configurable `/searchitem` default and maximum radii, plus a configurable take-link distance limit.
 
 ### Changed
-- Updated the plugin to target Paper `1.21.11` and Java `21`.
+- Updated the compile API to Paper `26.3.build.222-stable`, retaining `1.21.11` as the minimum supported API and Java `21` bytecode; building now requires JDK `25` or newer.
 - Updated the build to package cleanly on modern Java and Paper toolchains.
 - Updated `/searchitem` enchantment tab completion to read from the server enchantment registry, including data-driven enchantments.
 - Updated `/searchitem` take links to use a dedicated internal `/searchtake` command so clicks do not fall back into normal search parsing.
@@ -30,6 +34,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Removed bundled `bStats` metrics and the now-unneeded shading step from the build.
 
 ### Fixed
+- Fixed ProtocolLib ignored-slot overlay updates on Paper `26.3`, where CraftBukkit removed `asCraftMirror`.
+- Fixed overlapping visualization tasks and cross-world particle distance errors after teleporting.
+- Fixed unlimited-distance take links allowing transfers from another world.
+- Fixed the debug self-test clearing the player's inventory, ender chest, blacklist, and locked slots without restoring them, and restored the original location and held slot on completion.
+- Removed the unused Lombok compile dependency and corrected the Maven JAR filename configuration.
 - Fixed startup compatibility on Paper `1.21.11`.
 - Fixed modern Paper sound and particle validation so current defaults no longer warn on startup.
 - Fixed plugin loading when optional integrations are absent, outdated, or unavailable at compile time.

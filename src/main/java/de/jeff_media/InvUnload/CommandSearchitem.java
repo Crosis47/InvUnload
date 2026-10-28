@@ -222,9 +222,9 @@ public class CommandSearchitem implements CommandExecutor {
     }
 
     private boolean isWithinTakeRadius(Player player, Location containerLocation, int takeRadius) {
-        if(takeRadius < 0) return true;
         if(player.getWorld() == null || containerLocation.getWorld() == null) return false;
         if(!player.getWorld().equals(containerLocation.getWorld())) return false;
+        if(takeRadius < 0) return true;
         return player.getLocation().distanceSquared(containerLocation) <= (double) takeRadius * takeRadius;
     }
 

@@ -118,8 +118,10 @@ public class Visualizer {
 	}
 
 	void play(ArrayList<Block> destinations, Player p, double interval, int count, Particle particle,double speed,int maxDistance) {
+		if(!p.isOnline()) return;
 		for(Block destination : destinations) {
 			Location start = p.getLocation();
+			if(!destination.getWorld().equals(start.getWorld())) continue;
 			Vector vec = getDirectionBetweenLocations(start, BlockUtils.getCenterOfBlock(destination).add(0, -0.5, 0));
 			if(start.distance(destination.getLocation())<maxDistance) {
 	            for (double i = 1; i <= start.distance(destination.getLocation()); i += interval) {
@@ -134,6 +136,7 @@ public class Visualizer {
 	}
 	
 	void play(ArrayList<Block> affectedChests, Player p) {
+		cancelVisualization(p);
 		// Visualize
 		// TODO: Move the declarations out of the Runnable
 		Particle particle = Particle.valueOf(main.getConfig().getString("laser-particle","CRIT").toUpperCase());
@@ -150,7 +153,7 @@ public class Visualizer {
 				new BukkitRunnable() {
 					public void run() {
 						Bukkit.getServer().getScheduler().cancelTask(task);
-						activeVisualizations.remove(p.getUniqueId());
+						activeVisualizations.remove(p.getUniqueId(), task);
 					}
 				}.runTaskLater(main, 100);
 	}

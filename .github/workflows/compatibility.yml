@@ -1,0 +1,89 @@
+name: Paper compatibility
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Compile against the supported minimum API
+        run: mvn -B -ntp -Dpaper.api.version=1.21.11-R0.1-SNAPSHOT verify
+      - name: Build the 26.3 artifact with Java 21 bytecode
+        run: mvn -B -ntp clean verify
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-build
+          path: |
+            target/InvUnload.jar
+            target/test-classes/
+
+  server:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        protocolLib: [false, true]
+        paper: ['1.21.11', '26.1.2', '26.3']
+        include:
+          - paper: '1.21.11'
+            java: '21'
+          - paper: '26.1.2'
+            java: '25'
+          - paper: '26.3'
+            java: '25'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: compatibility-build
+          path: target
+      - name: Install ProtocolLib test dependency
+        if: matrix.protocolLib
+        run: |
+          curl -fL https://github.com/dmulloy2/ProtocolLib/releases/download/5.4.0/ProtocolLib.jar -o target/ProtocolLib.jar
+          echo 'ee2e7ab9b5386f2d103081c4d108e61b1035df2ca692b53d6e2409fb1f5caccf  target/ProtocolLib.jar' | sha256sum --check
+      - name: Run the same JAR on Paper ${{ matrix.paper }}
+        shell: pwsh
+        run: |
+          $extra = @{}
+          if ('${{ matrix.protocolLib }}' -eq 'true') { $extra.AdditionalPluginJar = @('target/ProtocolLib.jar') }
+          ./scripts/verify-paper.ps1 -PaperVersion '${{ matrix.paper }}' @extra
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install connected-client test dependency
+        run: npm install --prefix target/client-dependencies minecraft-protocol@1.68.0
+      - name: Check menu and overlay with a connected client
+        shell: pwsh
+        run: |
+          $env:NODE_PATH = (Resolve-Path 'target/client-dependencies/node_modules').Path
+          $fixture = Get-ChildItem target/compatibility -Directory | Select-Object -First 1
+          $env:PAPER_SERVER_JAR = Join-Path $fixture.FullName 'paper.jar'
+          $env:PAPER_CACHE_DIRECTORY = $fixture.FullName
+          if ('${{ matrix.protocolLib }}' -eq 'true') { $env:PROTOCOLLIB_JAR = (Resolve-Path 'target/ProtocolLib.jar').Path }
+          $clientVersion = '${{ matrix.paper }}'
+          if ($clientVersion -eq '26.1.2') { $clientVersion = '26.1' }
+          node scripts/verify-client.cjs $clientVersion
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: server-logs-${{ matrix.paper }}-protocollib-${{ matrix.protocolLib }}
+          path: |
+            target/compatibility/**/console.log
+            target/compatibility/**/logs/latest.log
+            target/compatibility/**/compatibility-result.txt
+            target/client-checks/**/console.log
+            target/client-checks/**/client-result.txt

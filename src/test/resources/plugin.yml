@@ -1,0 +1,5 @@
+name: InvUnloadCompatibilityProbe
+version: '1.0'
+main: de.jeff_media.invunloadtest.CompatibilityProbe
+api-version: '1.21.11'
+depend: [InvUnload]

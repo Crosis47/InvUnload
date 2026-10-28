@@ -1,7 +1,7 @@
 main: de.jeff_media.InvUnload.Main
 name: InvUnload
 version: ${project.version}
-api-version: '1.21.11'
+api-version: '${paper.minimum-api.version}'
 description: Unloads inventory in nearby matching chests
 author: mfnalex
 prefix: InvUnload

@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.jeff_media</groupId>
 	<artifactId>InvUnload</artifactId>
-	<version>5.2.0</version>
+	<version>5.3.0</version>
 	<name>InvUnload</name>
 	<packaging>jar</packaging>
 	<description>Automatically puts your stuff into the right chests!</description>
@@ -13,9 +13,12 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>21</java.version>
+		<paper.api.version>26.3.build.222-stable</paper.api.version>
+		<paper.minimum-api.version>1.21.11</paper.minimum-api.version>
 	</properties>
 
 	<build>
+		<finalName>InvUnload</finalName>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -37,9 +40,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>3.2.0</version>
-				<configuration>
-					<finalName>InvUnload</finalName>
-				</configuration>
 			</plugin>
 		</plugins>
 
@@ -64,13 +64,7 @@
 		<dependency>
 			<groupId>io.papermc.paper</groupId>
 			<artifactId>paper-api</artifactId>
-			<version>1.21.11-R0.1-SNAPSHOT</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.24</version>
+			<version>${paper.api.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
