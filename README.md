@@ -1,100 +1,151 @@
 # InvUnload
 
-Automatically puts your stuff into the right chests
+**Put your inventory away with one command.**
 
-You don't have time to open every chest in your storage room to tidy up your inventory?
-Fear no more! You have no more excuses for having chests full of random garbage!
+InvUnload is a Minecraft server plugin that moves items from your inventory into nearby storage. Stand in your storage room and run `/unload` to put items into chests that already contain the same item type, or `/dump` to store everything you can. You can also search for items without opening every chest.
 
 <p align="center">
-  <img src="https://api.jeff-media.de/invunload/spigotmc/img/invunload128.png"/>
+  <img src="https://api.jeff-media.de/invunload/spigotmc/img/invunload128.png" alt="InvUnload logo" width="128" height="128" />
 </p>
 
-InvUnload does two brilliant things:
+- **Keep storage organized:** unload matching items, or dump the rest into the nearest storage with room.
+- **Keep essentials with you:** your hotbar is skipped by default. Ignore individual slots or blacklist entire item types.
+- **Find what you need:** search by item type, enchantment, or both, then click a result to retrieve a stack if your server allows it.
+- **See where items went:** chat summaries and optional particle beams help you locate affected containers.
 
-When you enter /unload, it checks if there are chests nearby. For each chest, the player's inventory (except hotbar) will be searched for matching items. If there are any, they will be put into the chest.
+InvUnload works with chests, trapped chests, barrels, and placed shulker boxes.
 
-When you enter /dump, it will put all items from the player's inventory (except hotbar) into nearby chests. If possible, they will be put into chests already containing matching items.
+## Installation
 
-Players can also open an ignored-slot editor with `/unload slots` or `/dump slots` to mark specific inventory slots that should always be skipped by both commands.
+InvUnload runs on the **server**. Players do not need to install it on their clients.
 
-`/searchitem` can search by material, enchantment, or both. For example, `/searchitem MENDING` finds enchanted items and enchanted books with Mending, while `/searchitem DIAMOND_PICKAXE MENDING 10` narrows the search to nearby Mending diamond pickaxes. Search uses configurable `default-search-radius` and `max-search-radius` settings, both with group overrides. Search summaries include the matching chest slot numbers, and players with `invunload.search.take` can hover a result slot to preview the item tooltip or click it to move that stack into their inventory while they are within the configured `search-take-radius`.
+### Server requirements
 
-## Build
+| Paper version | Java required |
+| --- | --- |
+| `1.21.11` | Java `21` or newer |
+| `26.1+`, including `26.3` | Java `25` or newer |
 
-InvUnload compiles against Paper `26.3` while retaining Paper `1.21.11` as its minimum supported API. One JAR is intended for both server generations; the plugin keeps Java `21` bytecode.
+Paper `1.21.11` is the minimum supported version. The same plugin JAR has been checked on Paper `1.21.11`, `26.1.2`, and `26.3`. See [compatibility details](COMPATABILITY.md) for the tested versions and limitations.
 
-Requirements:
+### Install the plugin
 
-- JDK `25` or newer to build against the Paper `26.3` API
-- Maven `3.9+`
+1. Open a successful run of the [Paper compatibility workflow](https://github.com/Crosis47/InvUnload/actions/workflows/compatibility.yml), download the **compatibility-build** artifact, and extract `InvUnload.jar`. GitHub requires you to sign in to download workflow artifacts. To build the JAR yourself, see [Development](DEVELOPMENT.md).
+2. Stop your server and place `InvUnload.jar` in its `plugins` folder.
+3. Start the server. InvUnload creates its settings in `plugins/InvUnload/`.
+4. Use your permissions plugin to grant players `invunload.use`. Grant `invunload.search` to players who should also be able to search storage.
+5. Join the server, stand near a chest containing some cobblestone, and run `/unload` with more cobblestone in your main inventory.
 
-Paper `1.21.11` runs on Java `21`; Paper `26.1+`, including `26.3`, requires Java `25` or newer. The server's Java requirement still applies even though the plugin emits Java `21` bytecode.
+ProtocolLib and the other integrations listed below are optional.
 
-Optional integrations such as ChestSort, CoreProtect, ItemsAdder, Minepacks, PlotSquared, Spartan, and InventoryPages are resolved at runtime, so no manual `lib/*.jar` setup is required anymore.
+## Getting started
 
-Build from the repository root with `mvn verify`. Dependencies use the repo-local `.mvn/repository` cache.
+Put at least one item of each type into the chest where you want that type stored. For example, put cobblestone in one chest and oak logs in another. Run `/unload` nearby, and InvUnload will move matching items from your main inventory into those chests. Items without a matching chest stay with you.
 
-The API dependency is pinned to `26.3.build.222-stable`. To check source compatibility with the minimum API, run `mvn -Dpaper.api.version=1.21.11-R0.1-SNAPSHOT clean verify`. Rebuild normally afterward to produce the release artifact against `26.3`.
+Use `/dump` when you also want to put away items that have no matching chest. It fills matching storage first, then puts the remaining items into the nearest storage with room. Items that do not fit stay in your inventory.
 
-Release `5.3.0` passed the same-JAR server self-tests on Paper `1.21.11` using Java `21`, and `26.1.2`/`26.3` using Java `25`, both with and without ProtocolLib. See [COMPATABILITY.md](COMPATABILITY.md) for the support boundary, exact results, and remaining client checks.
+Both commands use a **10-block radius** by default. You can request another radius, such as `/unload 15`, up to your server's limit, which defaults to **20 blocks**.
 
-## Debug Self-Test
+## Commands
 
-For local verification on a running Paper server:
+Run these commands in game. Square brackets indicate optional arguments; angle brackets indicate values you supply.
 
-1. Set `debug: true` in `plugins/InvUnload/config.yml`
-2. Grant yourself `invunload.selftest`
-3. Run `/unload selftest`
+| Command | What it does |
+| --- | --- |
+| `/unload [radius]` | Moves items into nearby storage that already contains matching items. |
+| `/dump [radius]` | Moves matching items first, then puts the rest into the nearest storage with room. |
+| `/unload hotbar` | Toggles whether `/unload` includes your hotbar. |
+| `/dump hotbar` | Toggles whether `/dump` includes your hotbar, independently of `/unload`. |
+| `/unload slots` or `/dump slots` | Opens the ignored-slot editor. Both commands use the same ignored slots. |
+| `/unloadinfo [duration]` | Shows the last saved storage summary and highlights affected containers. Duration is in seconds. |
+| `/searchitem [item or enchantment] [radius]` | Searches nearby storage. With no query, searches for the item type you are holding. |
+| `/searchitem <item> <enchantment> [radius]` | Searches for a particular item type with a particular enchantment. |
+| `/blacklist` | Shows the item types you have chosen to keep. |
 
-The harness creates a small isolated test arena in a world named `invunload-selftest`. It restores the player's inventory, ender chest, cursor, held slot, location, blacklist, hotbar settings, and locked slots when finished. It checks:
+Shortcuts include `/ul` for `/unload`, `/dumpinfo` for `/unloadinfo`, and `/search` for `/searchitem`.
 
-- `/searchitem` finds a matching chest
-- `/searchitem` uses the configured default search radius
-- `/searchitem` reports matching chest slot numbers
-- clickable `/searchitem` take links keep item tooltip data and move the reported stack to the player
-- take links enforce distance, world, permission, configuration, and chest access checks
-- stale or used take links cannot take a replacement stack or be replayed
-- full inventories and partial transfers leave the correct stack in the chest
-- `/searchitem` finds items and enchanted books with a specific enchantment
-- `/searchitem` combines material and enchantment filters
-- `/unload` only moves matching items
-- `/dump` unloads matches and dumps leftovers
-- blacklist entries prevent dumping
-- locked hotbar and inventory slots are skipped by both `/unload` and `/dump`
-- locked slots survive save/reload, and preview metadata does not change real items
+### Keep items in your inventory
 
-The `Paper compatibility` workflow builds the plugin once against `26.3`, then runs that same JAR on Paper `1.21.11`, `26.1.2`, and `26.3`, each with and without ProtocolLib `5.4.0`. A test-only probe supplies a player adapter while Paper provides the real worlds, containers, item metadata, enchantment registry, and protection events. It also checks that self-test player state is restored. Connected-client checks run separately.
+**Ignore a slot:** run `/unload slots` and click the slots you want to keep untouched. With ProtocolLib, click directly in your inventory; without it, click the slot previews in the menu. The menu also has buttons to lock or unlock all hotbar slots, lock or unlock all main inventory slots, or clear your choices. Changes are saved automatically and apply to both `/unload` and `/dump`, even when hotbar unloading is enabled.
 
-After `mvn verify`, run a server check locally in PowerShell 7:
+**Keep an item type:** hold an item and run `/blacklist add`. Every item of that type will be skipped by both `/unload` and `/dump`, regardless of its slot. For example, blacklisting `DIAMOND_PICKAXE` keeps all your diamond pickaxes, not just the one you are holding.
 
-```powershell
-./scripts/verify-paper.ps1 -PaperVersion '26.3'
-```
+| Command | What it does |
+| --- | --- |
+| `/blacklist add` | Blacklists the item type you are holding. |
+| `/blacklist add DIAMOND_PICKAXE TORCH` | Blacklists the specified item types. |
+| `/blacklist add inventory` | Blacklists all item types in your main inventory, excluding your hotbar. |
+| `/blacklist add hotbar` | Blacklists all item types in your hotbar. |
+| `/blacklist remove` | Removes the held item type from your blacklist. |
+| `/blacklist remove <items...>` | Removes the specified item types. You can also use `inventory` or `hotbar`. |
+| `/blacklist reset` | Clears your blacklist. |
 
-The script downloads a stable server, verifies its SHA256, and uses an isolated directory under `target/compatibility`. To use a cached server without downloading it:
+### Find and retrieve items
 
-```powershell
-./scripts/verify-paper.ps1 -PaperVersion '1.21.11' -ServerJar './test-server/paper-1.21.11-130.jar' -CacheDirectory './test-server'
-```
+Use item names such as `DIAMOND_PICKAXE` and enchantment names such as `MENDING`. Tab completion helps you find the names.
 
-Pass `-AdditionalPluginJar '/path/to/ProtocolLib.jar'` to include ProtocolLib in a server check.
+| Example | What it finds |
+| --- | --- |
+| `/searchitem` | The item type you are holding. |
+| `/searchitem DIAMOND` | Diamonds in nearby storage. |
+| `/searchitem MENDING` | Items and enchanted books with Mending. |
+| `/searchitem DIAMOND_PICKAXE MENDING 15` | Diamond pickaxes with Mending within 15 blocks. |
 
-For connected protocol-client menu checks, install Node.js dependencies under `target` and select a cached Paper server and suitable JDK:
+Results show matching containers and their slot numbers. When retrieval is enabled and you have permission, hover over a result's slot number to preview the item, or click it to move that stack into your inventory. You must still be able to access the container and be within the allowed retrieval distance, which defaults to **10 blocks**. Search links expire after two minutes; run the search again if a result is no longer available.
 
-```powershell
-npm install --prefix target/client-dependencies minecraft-protocol@1.68.0
-$env:NODE_PATH = (Resolve-Path 'target/client-dependencies/node_modules').Path
-$env:JAVA_HOME = '/path/to/jdk-21'
-$env:PAPER_SERVER_JAR = (Resolve-Path 'test-server/paper-1.21.11-130.jar').Path
-$env:PAPER_CACHE_DIRECTORY = (Resolve-Path 'test-server').Path
-$env:PROTOCOLLIB_JAR = '/path/to/ProtocolLib.jar'
-node scripts/verify-client.cjs '1.21.11'
-```
+## Permissions
 
-Omit `PROTOCOLLIB_JAR` to test the fallback menu. For Paper `26.1.2`, use Java `25`, its cached server, and client version `26.1`. For Paper `26.3`, use Java `25`, its cached server, and client version `26.3`. The script starts a fresh loopback-only server, connects a test player, verifies menu packets and persisted locks, then stops the server. It retains logs under `target/client-checks/`. These checks also run in the compatibility workflow; they do not inspect graphical rendering.
+Server owners can grant these permissions through their permissions plugin.
 
-The `26.3` test client uses the included inventory protocol adapter, which speaks native protocol `777` directly to Paper. It handles the login, configuration, and inventory packets needed by these tests; unrelated game packets are treated as opaque data. Its packet/component IDs come from the server's `net.minecraft.data.Main --reports` output. To regenerate the ID data, generate reports from Paper `26.1.2-74` and `26.3-227`, then run:
+| Permission | Allows |
+| --- | --- |
+| `invunload.use` | `/unload`, `/dump`, `/unloadinfo`, `/blacklist`, hotbar toggles, and the ignored-slot editor. |
+| `invunload.search` | `/searchitem`. Also grants `invunload.search.take` as a child permission. |
+| `invunload.search.take` | Retrieving items through clickable search results. Deny this permission explicitly if players should only search. |
+| `invunload.reload` | Reloading configuration with `/unload reload`; in game, `invunload.use` is also required. |
+| `invunload.group.<name>` | Applying the radius settings for a group defined in `groups.yml`. |
 
-```powershell
-node scripts/generate-inventory-protocol.cjs /path/to/26.1.2/reports /path/to/26.3/reports
-```
+## Configuration
+
+Edit `plugins/InvUnload/config.yml`, then run `/unload reload` to apply your changes. From the server console, use `unload reload` without the slash. The generated file includes comments explaining all available options, including messages, sounds, particles, and integrations.
+
+Common settings and their defaults:
+
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `default-chest-radius` | `10` | Radius used by `/unload` and `/dump` when none is specified. |
+| `max-chest-radius` | `20` | Largest radius players may request for unloading or dumping. |
+| `default-search-radius` | `10` | Radius used by `/searchitem` when none is specified. |
+| `max-search-radius` | `20` | Largest radius players may request for searches. |
+| `search-take-links` | `true` | Enables clickable retrieval from search results. |
+| `search-take-radius` | `10` | Maximum retrieval distance in blocks. Use `-1` for any distance within the same world. |
+| `cooldown` | `0` | Seconds between unload/dump attempts; `0` disables the cooldown. |
+| `match-enchantments` | `false` | Requires matching enchantments and levels when choosing storage for `/unload`. |
+| `match-enchantments-on-books` | `false` | Requires matching enchantments for enchanted books even when the option above is off. |
+| `ignore-blocked-chests` | `true` | Skips regular chests blocked by a solid, opaque block above them. |
+| `always-show-summary` | `true` | Shows a chat summary after unloading or dumping. |
+| `laser-animation` | `false` | Shows particle beams automatically after unloading or dumping. |
+
+To give certain players different radii, copy `plugins/InvUnload/groups.example.yml` to `groups.yml` in the same folder, edit the group's values, and grant `invunload.group.<name>`. For example, the `donor` group uses `invunload.group.donor`. Reload the configuration afterward.
+
+## Optional integrations
+
+- **ProtocolLib:** shows ignored-slot previews directly in the player's inventory. The editor also works without it using previews in the menu.
+- **ChestSort:** sorts affected containers when the player has automatic sorting enabled, or when `force-chestsort` is enabled.
+- **CoreProtect:** logs items deposited by `/unload` and `/dump`.
+- **PlotSquared:** checks plot access using the configured trusted-player and outside-plot settings.
+- **ItemsAdder:** distinguishes custom items when matching them to storage.
+- **Minepacks and InventoryPages:** skips backpack items and inventory navigation buttons when unloading or dumping.
+- **Spartan:** includes a compatibility hook for InvUnload's chest access checks.
+
+By default, InvUnload also asks protection plugins whether a player can interact with each container. Keep `use-playerinteractevent: true` to retain these checks. The [compatibility report](COMPATABILITY.md) lists which integrations have been tested.
+
+## Troubleshooting
+
+- **Nothing moves with `/unload`:** make sure the destination already contains that item type, has space, and is within range. Check your blacklist, ignored slots, and hotbar toggle. Use `/dump` if you want to fill storage without matching items.
+- **A container is skipped:** check that you can open it, that it is within range, and that a protection plugin is not denying access. Blocked regular chests are skipped by default, and containers in unloaded chunks are not searched.
+- **You cannot run a command:** ask the server owner to check the permissions above. Searching requires `invunload.search` separately from `invunload.use`.
+- **A search result cannot be retrieved:** move closer, make room in your inventory, and search again. Retrieval also requires `invunload.search.take`, enabled take links, and continued access to the container.
+- **The plugin does not load:** check the server console and confirm that your Paper and Java versions meet the requirements above.
+
+For version changes, see the [changelog](CHANGELOG.md). For building, self-tests, and compatibility checks, see [Development](DEVELOPMENT.md).
